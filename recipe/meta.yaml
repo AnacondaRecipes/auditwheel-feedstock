@@ -38,6 +38,7 @@ test:
     - pytest >=3.4
     - docker-py
     - pretend
+    - patchelf
   commands:
     - pip check
     - auditwheel --help
