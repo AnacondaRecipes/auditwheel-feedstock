@@ -6,50 +6,56 @@ package:
   version: {{ version }}
 
 source:
-  url: https://pypi.org/packages/source/a/auditwheel/auditwheel-{{ version }}.tar.gz
+  url: https://pypi.org/packages/source/a/{{ name }}/{{ name }}-{{ version }}.tar.gz
   sha256: 277f3b315ad0b04df0a2be2d126c3fd39930bc265df0f9589d78c970ff06f52b
 
 build:
+  number: 0
+  skip: true # [py<310 or win or osx]
+  script: {{ PYTHON }} -m pip install . -vv --no-deps --no-build-isolation
   entry_points:
     - auditwheel = auditwheel.main:main
-  noarch: python
-  script: {{ PYTHON }} -m pip install . -vv --no-deps --no-build-isolation
-  number: 0
 
 requirements:
   host:
-    - python {{ python_min }}
-    - setuptools >=61
-    - wheel
-    - setuptools-scm >=8
+    - python
     - pip
+    - setuptools >=61
+    - setuptools-scm >=8
   run:
-    # Previously the package used to have a requirement on __linux since the it heavily rely on
-    # readelf etc. tools (the CLI in particular).
-    # However some part of the library are still universally useful so it was removed by user
-    # requests.
-    # This is akin the the PyPI package which can be installed on any platform.
+    - python
     - packaging >=20.9
-    - python >={{ python_min }}
     - pyelftools >=0.24
 
 test:
   imports:
     - auditwheel
+  source_files:
+    - tests/
+  requires:
+    - pip
+    - python
+    - pytest >=3.4
+    - docker-py
+    - pretend
   commands:
     - pip check
     - auditwheel --help
-  requires:
-    - pip
-    - python {{ python_min }}
+    - pytest -v tests/
 
 about:
   home: https://github.com/pypa/auditwheel
   license: MIT
+  license_family: MIT
   license_file:
     - LICENSE
     - src/auditwheel/_vendor/wheel/LICENSE.txt
-  summary: Linux wheel verification tool to ensure compatibility
+  summary: Auditing and relabeling cross-distribution Linux wheels.
+  description: |
+    Auditing and relabeling of PEP 600 manylinux_x_y, PEP 513 manylinux1,
+    PEP 571 manylinux2010 and PEP 599 manylinux2014 Linux wheels.
+  doc_url: https://github.com/pypa/auditwheel
+  dev_url: https://github.com/pypa/auditwheel
 
 extra:
   recipe-maintainers:
