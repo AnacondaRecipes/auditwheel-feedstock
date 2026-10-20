@@ -25,14 +25,13 @@ requirements:
   run:
     - python
     - packaging >=20.9
+    - patchelf >=0.14.5
     - pyelftools >=0.24
 
-# Missing fixtures in the sdist (upstream MANIFEST.in: `global-exclude *.so` drops the
-# android libc++_shared.so files) + log assertion mismatch (test issue)
+# test_libcxx: fixtures dropped from sdist (upstream MANIFEST.in `global-exclude *.so`)
 {% set skip_tests = "not test_analyze_wheel_abi_static_exe" %}
 {% set skip_tests = skip_tests + " and not test_main_lddtree" %}
 {% set skip_tests = skip_tests + " and not test_weak_symbols_not_blacklisted" %}
-{% set skip_tests = skip_tests + " and not test_libpython" %}
 {% set skip_tests = skip_tests + " and not test_libcxx" %}
 
 test:
@@ -47,11 +46,10 @@ test:
     - jsonschema
     - docker-py
     - pretend
-    - patchelf
   commands:
     - pip check
     - auditwheel --help
-    - pytest -v tests/ -k "{{ skip_tests }}"
+    - pytest -v tests/ --log-level=INFO --deselect tests/integration/test_bundled_wheels.py::test_libpython -k "{{ skip_tests }}"
 
 about:
   home: https://github.com/pypa/auditwheel
@@ -60,6 +58,7 @@ about:
   license_file:
     - LICENSE
     - src/auditwheel/_vendor/wheel/LICENSE.txt
+    - src/auditwheel/_vendor/whichprovides/LICENSE.txt
   summary: Auditing and relabeling cross-distribution Linux wheels.
   description: |
     Auditing and relabeling of PEP 600 manylinux_x_y, PEP 513 manylinux1,
