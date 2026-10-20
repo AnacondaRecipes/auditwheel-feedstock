@@ -1,5 +1,5 @@
 {% set name = "auditwheel" %}
-{% set version = "6.6.0" %}
+{% set version = "6.8.2" %}
 
 package:
   name: {{ name|lower }}
@@ -7,7 +7,7 @@ package:
 
 source:
   url: https://pypi.org/packages/source/a/{{ name }}/{{ name }}-{{ version }}.tar.gz
-  sha256: 277f3b315ad0b04df0a2be2d126c3fd39930bc265df0f9589d78c970ff06f52b
+  sha256: d007c4fd8c9c4b5113690ab0b159e05c5aa9b2d31b69efc40875826cc095594b
 
 build:
   number: 0
@@ -25,13 +25,14 @@ requirements:
   run:
     - python
     - packaging >=20.9
+    - patchelf >=0.14.5
     - pyelftools >=0.24
 
-# Missing wheel fixtures in repo (sdist) + log assertion mismatch (test issue)
+# test_libcxx: fixtures dropped from sdist (upstream MANIFEST.in `global-exclude *.so`)
 {% set skip_tests = "not test_analyze_wheel_abi_static_exe" %}
 {% set skip_tests = skip_tests + " and not test_main_lddtree" %}
 {% set skip_tests = skip_tests + " and not test_weak_symbols_not_blacklisted" %}
-{% set skip_tests = skip_tests + " and not test_libpython" %}
+{% set skip_tests = skip_tests + " and not test_libcxx" %}
 
 test:
   imports:
@@ -42,13 +43,13 @@ test:
     - pip
     - python
     - pytest >=3.4
+    - jsonschema
     - docker-py
     - pretend
-    - patchelf
   commands:
     - pip check
     - auditwheel --help
-    - pytest -v tests/ -k "{{ skip_tests }}"
+    - pytest -v tests/ --log-level=INFO --deselect tests/integration/test_bundled_wheels.py::test_libpython -k "{{ skip_tests }}"
 
 about:
   home: https://github.com/pypa/auditwheel
@@ -57,6 +58,7 @@ about:
   license_file:
     - LICENSE
     - src/auditwheel/_vendor/wheel/LICENSE.txt
+    - src/auditwheel/_vendor/whichprovides/LICENSE.txt
   summary: Auditing and relabeling cross-distribution Linux wheels.
   description: |
     Auditing and relabeling of PEP 600 manylinux_x_y, PEP 513 manylinux1,
