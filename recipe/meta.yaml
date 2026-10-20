@@ -27,11 +27,13 @@ requirements:
     - packaging >=20.9
     - pyelftools >=0.24
 
-# Missing wheel fixtures in repo (sdist) + log assertion mismatch (test issue)
+# Missing fixtures in the sdist (upstream MANIFEST.in: `global-exclude *.so` drops the
+# android libc++_shared.so files) + log assertion mismatch (test issue)
 {% set skip_tests = "not test_analyze_wheel_abi_static_exe" %}
 {% set skip_tests = skip_tests + " and not test_main_lddtree" %}
 {% set skip_tests = skip_tests + " and not test_weak_symbols_not_blacklisted" %}
 {% set skip_tests = skip_tests + " and not test_libpython" %}
+{% set skip_tests = skip_tests + " and not test_libcxx" %}
 
 test:
   imports:
